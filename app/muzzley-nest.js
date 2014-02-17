@@ -1,8 +1,8 @@
 var nest = require('unofficial-nest-api');
 var muzzley = require('muzzley-client');
 
-var username = 'yourNestUser@example.com';
-var password = 'yourNestPass';
+var username = '';
+var password = '';
 var widgetUuid='8137001c-2711-4af3-a799-45003b6359aa';
 var options = {
   token: '0f0fe92e15316d4b',
@@ -13,10 +13,36 @@ var deviceId = '';
 var temperature = '';
 var humidity = '';
 var away = '';
-var someid = '';
 var off = '';
 var online = '';
 var temperatureType = '';
+
+// a function to load json data from a file
+var fs = require('fs');
+function loadJSONfile (filename, encoding) {
+  try {
+    if (typeof (encoding) == 'undefined') encoding = 'utf8';
+    var contents = fs.readFileSync(filename, encoding);
+    return JSON.parse(contents);
+    
+  } catch (err) {
+    console.log(err);
+  }
+} // loadJSONfile
+
+var myData = loadJSONfile('./vars.json');
+//create a vars.json file with your data
+
+if(myData){
+  console.log(' - My personal data loaded ');
+  //console.log(myData);
+  username = myData.nestUsername;
+  password = myData.nestPassword;
+  // data was successfully loaded, init muzzley connection
+  connectMuzzley();
+}else{
+  console.log(' - My personal data not load');
+}
 
 
 function connectMuzzley(){
@@ -85,7 +111,7 @@ function connectNest(){
           //console.log(data);
           // save the Nest inicial information
           deviceId = ddeviceId;
-          
+          var structureId ="";
           if (data.device.hasOwnProperty(ddeviceId)) {
             var device = data.shared[ddeviceId];
             temperatureType = data.device[ddeviceId].temperature_scale;
@@ -96,9 +122,9 @@ function connectNest(){
             }
             temperature = parseInt(temperature, 10);
             humidity = data.device[ddeviceId].current_humidity;
-            someid = data.link[ddeviceId].structure;
-            someid = someid.substring(someid.indexOf('.')+1, someid.length);
-            away = data.structure[someid].away;
+            structureId = data.link[ddeviceId].structure;
+            structureId = structureId.substring(structureId.indexOf('.')+1, structureId.length);
+            away = data.structure[structureId].away;
             off = data.device[ddeviceId].switch_system_off;
             online = data.track[ddeviceId].online;
             
